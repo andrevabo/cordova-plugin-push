@@ -8,6 +8,7 @@ import android.app.NotificationManager
 import android.content.ContentResolver
 import android.content.Context
 import android.content.res.Resources.NotFoundException
+import android.Manifest
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
@@ -35,6 +36,7 @@ import java.util.concurrent.ExecutionException
 class PushPlugin : CordovaPlugin() {
   companion object {
     const val PREFIX_TAG: String = "cordova-plugin-push"
+    const val NOTIFICATION_REQUEST_CODE: Int = 4216
     private const val TAG: String = "$PREFIX_TAG (PushPlugin)"
 
     /**
@@ -795,6 +797,10 @@ class PushPlugin : CordovaPlugin() {
   override fun initialize(cordova: CordovaInterface, webView: CordovaWebView) {
     super.initialize(cordova, webView)
     isInForeground = true
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU 
+      && !cordova.hasPermission(Manifest.permission.POST_NOTIFICATIONS)) {
+      cordova.requestPermission(this, NOTIFICATION_REQUEST_CODE, Manifest.permission.POST_NOTIFICATIONS)
+    }
   }
 
   /**
