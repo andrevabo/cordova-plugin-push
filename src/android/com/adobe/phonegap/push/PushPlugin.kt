@@ -431,6 +431,14 @@ class PushPlugin : CordovaPlugin() {
     return true
   }
 
+  // Mantém o callback aberto: pushContext é este mesmo callback e, se for encerrado,
+  // os eventos seguintes (toques em notificações, mensagens em primeiro plano) são descartados.
+  private fun sendInitError(callbackContext: CallbackContext, message: String?) {
+    callbackContext.sendPluginResult(
+      PluginResult(PluginResult.Status.ERROR, message).apply { keepCallback = true }
+    )
+  }
+
   private fun executeActionInitialize(data: JSONArray, callbackContext: CallbackContext) {
     // Better Logging
     fun formatLogMessage(msg: String): String = "Execute::Initialize: ($msg)"
@@ -492,18 +500,18 @@ class PushPlugin : CordovaPlugin() {
 
           sendEvent(registration)
         } else {
-          callbackContext.error("Empty registration ID received from FCM")
+          sendInitError(callbackContext, "Empty registration ID received from FCM")
           return@Runnable
         }
       } catch (e: JSONException) {
         Log.e(TAG, formatLogMessage("JSON Exception ${e.message}"))
-        callbackContext.error(e.message)
+        sendInitError(callbackContext, e.message)
       } catch (e: IOException) {
         Log.e(TAG, formatLogMessage("IO Exception ${e.message}"))
-        callbackContext.error(e.message)
+        sendInitError(callbackContext, e.message)
       } catch (e: NotFoundException) {
         Log.e(TAG, formatLogMessage("Resources NotFoundException Exception ${e.message}"))
-        callbackContext.error(e.message)
+        sendInitError(callbackContext, e.message)
       }
 
       jo?.let {
